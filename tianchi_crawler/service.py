@@ -4,8 +4,8 @@ from typing import List, Dict
 from urllib.parse import urlparse
 from mcp.server.fastmcp import FastMCP
 # 导入你现有的组件
-from config import BrowserConfig, CrawlConfig
-from crawler import AsyncMinimalCrawler
+from .config import BrowserConfig, CrawlConfig
+from .crawler import AsyncMinimalCrawler
 
 # 配置日志
 logging.basicConfig(

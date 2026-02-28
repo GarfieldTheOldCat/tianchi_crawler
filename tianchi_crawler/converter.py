@@ -270,7 +270,7 @@ class DefaultMarkdownGenerator(MarkdownGenerationStrategy):
                 if hasattr(h, key):
                     setattr(h, key, value)
 
-            logger.info(input_html[:100])
+            # logger.info(input_html[:100])
             raw_markdown = h.handle(input_html or "")
             raw_markdown = raw_markdown.replace("    ```", "```")
 
@@ -287,8 +287,8 @@ class DefaultMarkdownGenerator(MarkdownGenerationStrategy):
                 filtered_html_list = active_filter.filter_content(input_html)
                 filtered_html = "\n".join(f"<div>{s}</div>" for s in filtered_html_list)
                 fit_markdown = h.handle(filtered_html)
-            logger.info("raw: "+raw_markdown[:50])
-            logger.info("fit: "+fit_markdown[:50])
+            # logger.info("raw: "+raw_markdown[:50])
+            # logger.info("fit: "+fit_markdown[:50])
 
             return MarkdownGenerationResult(
                 raw_markdown=raw_markdown,

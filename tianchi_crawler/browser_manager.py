@@ -1,6 +1,6 @@
 from playwright.async_api import async_playwright, Browser, BrowserContext, Page
-from config import BrowserConfig
-from stealth import apply_stealth
+from .config import BrowserConfig
+from .stealth import apply_stealth
 import logging
 
 logger = logging.getLogger(__name__)

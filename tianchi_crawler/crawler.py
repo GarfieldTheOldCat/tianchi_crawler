@@ -1,9 +1,9 @@
 import asyncio
 import logging
 from typing import List, Optional
-from config import BrowserConfig, CrawlConfig
-from browser_manager import BrowserManager
-from converter import html_to_markdown
+from .config import BrowserConfig, CrawlConfig
+from .browser_manager import BrowserManager
+from .converter import html_to_markdown
 from pydantic import BaseModel
 
 logger = logging.getLogger(__name__)
@@ -68,7 +68,7 @@ class AsyncMinimalCrawler:
                             use_citations=config.use_citations,
                             html2text_options=config.html2text_options,
                         )
-                        logger.info(markdown[:1000])
+                        # logger.info(markdown[:1000])
 
                         # 关闭当前标签页，释放资源
                         await page.close()
