@@ -40,7 +40,7 @@ class AsyncMinimalCrawler:
             async def bounded_crawl(url: str) -> CrawlResult:
                 async with semaphore:  # 控制同时打开的标签页数量
                     try:
-                        logger.info(f"📑 创建新标签页爬取: {url}")
+                        logger.info(f"Create new tab for: {url}")
                         page = await bm.new_page()  # ← 在同一个浏览器里开新标签页
 
                         await page.goto(url, wait_until=config.wait_until, timeout=config.timeout)
@@ -73,11 +73,11 @@ class AsyncMinimalCrawler:
                         # 关闭当前标签页，释放资源
                         await page.close()
 
-                        logger.info(f"✅ 标签页完成: {url} | markdown len={len(markdown)}")
+                        logger.info(f"Tab finished successfully: {url} | markdown len={len(markdown)}")
                         return CrawlResult(url=url, markdown=markdown, html=html, screenshot=screenshot)
 
                     except Exception as e:
-                        logger.error(f"❌ 标签页失败 {url}: {type(e).__name__}: {e}", exc_info=True)
+                        logger.error(f"Tab failed: {url}: {type(e).__name__}: {e}", exc_info=True)
                         return CrawlResult(url=url, error=f"{type(e).__name__}: {e}")
 
             # 并发执行所有 URL（都在同一个浏览器窗口的不同标签页）

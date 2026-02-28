@@ -1,13 +1,13 @@
 import asyncio
 import logging
-from config import BrowserConfig, CrawlConfig
-from crawler import AsyncMinimalCrawler
+from tianchi_crawler.config import BrowserConfig, CrawlConfig
+from tianchi_crawler.crawler import AsyncMinimalCrawler
 
 logging.basicConfig(level=logging.DEBUG, format="%(asctime)s | %(levelname)s | %(name)s | %(message)s")
 
 
 async def main():
-    crawler = AsyncMinimalCrawler(BrowserConfig(headless=False))
+    crawler = AsyncMinimalCrawler(BrowserConfig(headless=True))
 
     urls = [
         "https://pubmed.ncbi.nlm.nih.gov/31959057/",
