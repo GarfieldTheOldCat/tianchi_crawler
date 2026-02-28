@@ -14,55 +14,37 @@ logging.basicConfig(
 )
 logger = logging.getLogger("CrawlerMCP")
 import subprocess
-import shutil
 from pathlib import Path
 
 
 def ensure_playwright_browsers():
-    """通用检测并自动安装 Chromium 浏览器及系统依赖"""
-
-    # 1. 自动适配不同操作系统的浏览器存放路径
+    """针对服务器和 PC 优化的环境检查"""
+    # 自动适配 Linux/Windows 路径
     if sys.platform == "win32":
-        # Windows 路径
         browser_path = Path.home() / "AppData" / "Local" / "ms-playwright"
-    elif sys.platform == "darwin":
-        # macOS 路径
-        browser_path = Path.home() / "Library" / "Caches" / "ms-playwright"
     else:
-        # Linux 路径（通常为服务器环境）
         browser_path = Path.home() / ".cache" / "ms-playwright"
 
-    # 检查 chromium 是否存在
+    # 检查是否同时存在 chromium 和 headless-shell
     has_chromium = any(browser_path.glob("chromium-*")) if browser_path.exists() else False
+    has_shell = any(browser_path.glob("chromium_headless_shell-*")) if browser_path.exists() else False
 
-    if not has_chromium:
-        logger.info(f"Failed to find Chromium at {browser_path}, starting one-time setup...")
+    if not has_chromium or not has_shell:
+        logger.info("Playwright browsers missing. Starting full installation...")
         try:
-            # 2. 安装浏览器执行程序
-            # 使用 sys.executable 确保使用当前 Python 环境的 playwright 模块
-            logger.info("Installing Chromium browser...")
-            subprocess.run(
-                [sys.executable, "-m", "playwright", "install", "chromium"],
-                check=True,
-                capture_output=True
-            )
+            # 1. 安装核心浏览器
+            subprocess.run([sys.executable, "-m", "playwright", "install", "chromium"], check=True)
 
-            # 3. 如果是 Linux 环境，安装必要的系统依赖库（如 libnss3, libatk 等）
+            # 2. 针对服务器报错，显式安装 headless-shell
+            subprocess.run([sys.executable, "-m", "playwright", "install", "chromium-headless-shell"], check=True)
+
+            # 3. 如果是 Linux，必须补全系统依赖
             if sys.platform.startswith("linux"):
-                logger.info("Linux detected: Installing system dependencies (requires sudo)...")
-                # install-deps 是服务器正常运行的关键
-                subprocess.run(
-                    [sys.executable, "-m", "playwright", "install-deps", "chromium"],
-                    check=True,
-                    capture_output=True
-                )
+                subprocess.run([sys.executable, "-m", "playwright", "install-deps"], check=True)
 
-            logger.info("Playwright environment has been successfully initialized.")
+            logger.info("Installation successful.")
         except Exception as e:
-            logger.error(f"Playwright setup failed: {e}")
-            logger.info("Manual fix: run 'python -m playwright install --with-deps chromium'")
-    else:
-        logger.info("Chromium environment is ready.")
+            logger.error(f"Auto-install failed: {e}")
 
 
 # 在初始化之前调用
