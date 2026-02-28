@@ -1,0 +1,16 @@
+# Python 虚拟环境
+.venv/
+__pycache__/
+*.pyc
+
+# 临时文件与构建输出
+dist/
+build/
+*.egg-info/
+
+# 编辑器配置文件
+.idea/
+.vscode/
+
+# 其他
+uv.lock
