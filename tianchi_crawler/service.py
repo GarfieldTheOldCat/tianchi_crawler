@@ -18,33 +18,59 @@ from pathlib import Path
 
 
 def ensure_playwright_browsers():
-    """针对服务器和 PC 优化的环境检查"""
-    # 自动适配 Linux/Windows 路径
+    """
+    通用检测并自动安装浏览器环境：
+    - 在 Linux 服务器上精准安装轻量化 chromium-headless-shell 及系统依赖
+    - 在 Windows/macOS 上安装标准 chromium 以供测试
+    """
+
+    # 1. 自动适配不同操作系统的浏览器存放路径
     if sys.platform == "win32":
-        browser_path = Path.home() / "AppData" / "Local" / "ms-playwright"
+        # Windows 个人 PC 路径
+        base_path = Path.home() / "AppData" / "Local" / "ms-playwright"
+        browser_type = "chromium"  # PC 端建议使用标准版便于调试
+    elif sys.platform == "darwin":
+        # macOS 路径
+        base_path = Path.home() / "Library" / "Caches" / "ms-playwright"
+        browser_type = "chromium"
     else:
-        browser_path = Path.home() / ".cache" / "ms-playwright"
+        # Linux 服务器路径
+        base_path = Path.home() / ".cache" / "ms-playwright"
+        # 针对服务器 2核4G 优化：使用体积更小的 headless-shell
+        browser_type = "chromium-headless-shell"
 
-    # 检查是否同时存在 chromium 和 headless-shell
-    has_chromium = any(browser_path.glob("chromium-*")) if browser_path.exists() else False
-    has_shell = any(browser_path.glob("chromium_headless_shell-*")) if browser_path.exists() else False
+    # 2. 检查对应的浏览器内核是否存在
+    # 检查文件夹名是否包含浏览器类型关键字
+    has_browser = any(base_path.glob(f"{browser_type.replace('-', '_')}-*")) if base_path.exists() else False
 
-    if not has_chromium or not has_shell:
-        logger.info("Playwright browsers missing. Starting full installation...")
+    if not has_browser:
+        logger.info(f"Browser {browser_type} not found. Starting one-time setup...")
         try:
-            # 1. 安装核心浏览器
-            subprocess.run([sys.executable, "-m", "playwright", "install", "chromium"], check=True)
+            # 3. 安装浏览器执行程序
+            # 使用 sys.executable 确保调用当前 Python 环境中的 playwright
+            logger.info(f"Installing {browser_type}...")
+            subprocess.run(
+                [sys.executable, "-m", "playwright", "install", browser_type],
+                check=True,
+                capture_output=True
+            )
 
-            # 2. 针对服务器报错，显式安装 headless-shell
-            subprocess.run([sys.executable, "-m", "playwright", "install", "chromium-headless-shell"], check=True)
-
-            # 3. 如果是 Linux，必须补全系统依赖
+            # 4. 如果是 Linux，必须安装系统底层依赖库（如 libnss3, libatk 等）
             if sys.platform.startswith("linux"):
-                subprocess.run([sys.executable, "-m", "playwright", "install-deps"], check=True)
+                logger.info(f"Linux detected: Installing system dependencies for {browser_type}...")
+                # install-deps 是解决服务器报错 'Executable doesn't exist' 的关键
+                subprocess.run(
+                    [sys.executable, "-m", "playwright", "install-deps", browser_type],
+                    check=True,
+                    capture_output=True
+                )
 
-            logger.info("Installation successful.")
+            logger.info(f"Playwright {browser_type} environment is now ready.")
         except Exception as e:
-            logger.error(f"Auto-install failed: {e}")
+            logger.error(f"Playwright setup failed: {e}")
+            logger.info(f"Manual fix: run 'python -m playwright install --with-deps {browser_type}'")
+    else:
+        logger.info(f"Found existing {browser_type} environment.")
 
 
 # 在初始化之前调用
